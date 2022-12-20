@@ -1,10 +1,9 @@
+import Servlet.ServletContext;
 import WarInfo.ParseWebXml;
-import WarInfo.ServletWarInfo;
 import org.apache.commons.cli.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,12 +35,12 @@ public class Main {
         return false;
     }
 
-    private static void openSocket(Map<String, ServletWarInfo> map) throws Exception {
+    private static void startServer(ServletContext ss) throws Exception {
         ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         try (ServerSocket s = new ServerSocket(port)) {
             while (true) {
                 Socket socket = s.accept();
-                HttpTask task = new HttpTask(socket, map);
+                HttpTask task = new HttpTask(socket, ss);
                 pool.submit(task);
             }
         }
@@ -54,9 +53,8 @@ public class Main {
         }
 
         ParseWebXml p = new ParseWebXml();
-        Map<String, ServletWarInfo> map = p.parse();
+        ServletContext s = p.parse();
 
-        openSocket(map);
+        startServer(s);
     }
-
 }

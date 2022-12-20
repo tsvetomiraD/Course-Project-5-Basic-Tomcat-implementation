@@ -1,27 +1,20 @@
 package Servlet;
 
-import WarInfo.ServletWarInfo;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpenClass {
-    public static void open(Map<String, ServletWarInfo> map, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws Exception {
+    public static void open(ServletContext s, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws Exception {
         String path = httpServletRequest.getPathInfo();
         ArrayList<String> pathPieces = getPathPieces(path);
         String startPath = pathPieces.get(0);
-        HttpServlet httpServlet = getHttpServlet(startPath, map);
+        HttpServlet httpServlet = getHttpServlet(startPath, s);
         navigate(httpServlet, httpServletResponse, httpServletRequest);
     }
 
     private static void navigate(HttpServlet httpServlet, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws IOException {
-        if (httpServlet == null) {
-            return; // todo check what original does
-        }
-
         switch (httpServletRequest.getMethod()) {
             case "GET" -> httpServlet.doGet(httpServletRequest, httpServletResponse);
             case "DELETE" -> httpServlet.doDelete(httpServletRequest, httpServletResponse);
@@ -31,15 +24,12 @@ public class OpenClass {
         }
     }
 
-    private static HttpServlet getHttpServlet(String startPath, Map<String, ServletWarInfo> map) throws InstantiationException, IllegalAccessException {
-        for (Map.Entry<String, ServletWarInfo> m : map.entrySet()) {
-            String url = m.getValue().url;
-            if (url.contains(startPath)) {
-                return m.getValue().className.newInstance();
-            }
+    private static HttpServlet getHttpServlet(String startPath, ServletContext s) throws InstantiationException, IllegalAccessException {
+        String name = s.getNameByPath(startPath);
+        if (name == null) {
+            return s.getDefaultServlet();
         }
-
-        return null;
+        return s.getServlet(name);
     }
 
     private static ArrayList<String> getPathPieces(String path) {

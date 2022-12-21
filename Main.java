@@ -1,5 +1,6 @@
-import Servlet.ServletContext;
-import WarInfo.ParseWebXml;
+import Parsers.ServerParser;
+import Servlet.ServletInfo;
+import Parsers.ParseWebXml;
 import org.apache.commons.cli.*;
 
 import java.net.ServerSocket;
@@ -35,7 +36,7 @@ public class Main {
         return false;
     }
 
-    private static void startServer(ServletContext ss) throws Exception {
+    private static void startServer(ServletInfo ss) throws Exception {
         ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         try (ServerSocket s = new ServerSocket(port)) {
             while (true) {
@@ -46,15 +47,22 @@ public class Main {
         }
     }
 
+    private static ServletInfo parse() throws Exception {
+        ServerParser sp = new ServerParser();
+        sp.parse();
+        String path = sp.path;
+        String docBase = sp.docBase;
+        ParseWebXml p = new ParseWebXml();
+        return p.parse(path, docBase);
+    }
+
     public static void main(String[] args) throws Exception {
         boolean help = getOptions(args);
         if (help) {
             return;
         }
 
-        ParseWebXml p = new ParseWebXml();
-        ServletContext s = p.parse();
-
+        ServletInfo s = parse();
         startServer(s);
     }
 }

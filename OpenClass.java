@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpenClass {
-    public static void open(ServletContext s, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws Exception {
+    public static void open(ServletInfo s, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws Exception {
         String path = httpServletRequest.getPathInfo();
         ArrayList<String> pathPieces = getPathPieces(path);
         String startPath = pathPieces.get(0);
@@ -24,10 +24,10 @@ public class OpenClass {
         }
     }
 
-    private static HttpServlet getHttpServlet(String startPath, ServletContext s) throws InstantiationException, IllegalAccessException {
+    private static HttpServlet getHttpServlet(String startPath, ServletInfo s) throws InstantiationException, IllegalAccessException {
         String name = s.getNameByPath(startPath);
         if (name == null) {
-            return s.getDefaultServlet();
+            return s.getServletContext();
         }
         return s.getServlet(name);
     }
@@ -37,8 +37,14 @@ public class OpenClass {
         Matcher matcher = p.matcher(path);
 
         ArrayList<String> arr = new ArrayList<>();
+        int count = 0;
         while (matcher.find()) {
+            if (count == 0) {
+                count++;
+                continue;
+            }
             arr.add(matcher.group());
+            count++;
         }
 
         return arr;
